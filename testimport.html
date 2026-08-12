@@ -1,0 +1,6 @@
+<!doctype html><html><body><div id="out">start</div><script src="app.js"></script><script>
+const sample=JSON.stringify({version:3,canvas:{units:'feet',infinite:true,scale:20},state:{objects:[{id:'o1',type:'wall',x:1,y:1,w:10,h:.333333,rotation:0,label:'',fill:'#d9dde1',stroke:'#3d4650'},{id:'o2',type:'room',x:2,y:2,w:12,h:10,rotation:0,label:'BED ROOM',fill:'#f7fafb',stroke:'#3f4a55'},{id:'o3',type:'bed',x:4,y:4,w:5,h:6.5,rotation:0,label:'',fill:'#d4e3ec',stroke:'#42515d'}],selectedId:null,showGrid:true,showMeasurements:true,snap:0,background:'#ffffff',dimensionRef:'inner',wallThickness:4/12,smartAlign:true},camera:{x:0,y:0,w:30,h:20}});
+class FR{readAsText(){this.onload({target:{result:sample}})} }
+window.FileReader=FR;
+setTimeout(()=>{try{loadFile({target:{files:[{}],value:''}}); document.getElementById('out').textContent='ok '+state.objects.length}catch(e){document.getElementById('out').textContent='ERR '+e.stack; console.error(e)}},500);
+</script></body></html>
