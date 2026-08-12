@@ -78,6 +78,11 @@ const defaults = {
 const ASSET_NAMES = Object.fromEntries(ASSETS);
 ASSET_NAMES.measurement = "Measurement";
 
+const roomDimensionInputNote = document.getElementById(
+  "roomDimensionInputNote",
+);
+const doorPlacementHint = document.getElementById("doorPlacementHint");
+
 function uid() {
   return "o" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
@@ -207,10 +212,10 @@ function addObject(type, x = 8, y = 6) {
     labelOffsetY: -0.8,
     dimensionOffsetX: 0,
     dimensionOffsetY: 1.2,
-    topWall: type === "room" ? 4 / 12 : 0,
-    rightWall: type === "room" ? 4 / 12 : 0,
-    bottomWall: type === "room" ? 4 / 12 : 0,
-    leftWall: type === "room" ? 4 / 12 : 0,
+    topWall: type === "room" ? 3 / 12 : 0,
+    rightWall: type === "room" ? 3 / 12 : 0,
+    bottomWall: type === "room" ? 3 / 12 : 0,
+    leftWall: type === "room" ? 3 / 12 : 0,
     locked: false,
     fill: d.fill,
     stroke: d.stroke,
@@ -691,7 +696,7 @@ function dimensionModeLabel(mode) {
 }
 
 function ensureRoomWalls(o) {
-  const t = 4 / 12;
+  const t = 3 / 12;
 
   if (!Number.isFinite(Number(o.topWall))) o.topWall = t;
   if (!Number.isFinite(Number(o.rightWall))) o.rightWall = t;
@@ -2390,7 +2395,7 @@ function updateProps() {
     propW.value = ftIn(rd.w);
     propH.value = ftIn(rd.h);
 
-    roomDimensionInputNote.classList.remove("hidden");
+    roomDimensionInputNote?.classList.remove("hidden");
     roomWallsPanel.classList.remove("hidden");
     roomTopWall.value = ftIn(o.topWall);
     roomRightWall.value = ftIn(o.rightWall);
@@ -2400,14 +2405,14 @@ function updateProps() {
     propW.value = ftIn(o.w);
     propH.value = ftIn(o.h);
 
-    roomDimensionInputNote.classList.add("hidden");
+    roomDimensionInputNote?.classList.add("hidden");
     roomWallsPanel.classList.add("hidden");
   }
 
-  wallDimensionNote.classList.toggle("hidden", o.type !== "wall");
-  doorPlacementHint.classList.toggle("hidden", o.type !== "door");
-  widthLabel.textContent = o.type === "room" ? "Inner W" : "Width";
-  heightLabel.textContent = o.type === "room" ? "Inner H" : "Height";
+  wallDimensionNote?.classList.toggle("hidden", o.type !== "wall");
+  doorPlacementHint?.classList.toggle("hidden", o.type !== "door");
+  widthLabel.textContent = o.type === "room" ? "Inner Width" : "Width";
+  heightLabel.textContent = o.type === "room" ? "Inner Height" : "Height";
   propRotation.value = (o.rotation || 0) + "°";
   propLabel.value = o.label || "";
   propFill.value = o.fill || "#ffffff";
@@ -2481,7 +2486,7 @@ function migrateImportedState(raw) {
     dimensionRef: ["inner", "outer", "center"].includes(incoming.dimensionRef)
       ? incoming.dimensionRef
       : "inner",
-    wallThickness: Number(incoming.wallThickness) || 4 / 12,
+    wallThickness: Number(incoming.wallThickness) || 3 / 12,
     smartAlign: incoming.smartAlign !== false,
     distancePair: null,
   };
@@ -2703,6 +2708,36 @@ function loadFile(e) {
   };
 
   reader.readAsText(file);
+}
+
+function getContentBounds() {
+  if (!state.objects.length) {
+    return { x: -20, y: -12, w: 40, h: 30 };
+  }
+
+  const pad = 2;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const o of state.objects) {
+    const pts = rotatedCorners(o);
+
+    for (const p of pts) {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    }
+  }
+
+  return {
+    x: minX - pad,
+    y: minY - pad,
+    w: Math.max(1, maxX - minX + pad * 2),
+    h: Math.max(1, maxY - minY + pad * 2),
+  };
 }
 
 function exportSVG() {
@@ -3035,19 +3070,19 @@ propLabel.addEventListener("input", () => {
   render();
 });
 
-propFill.addEventListener("input", () => {
-  const o = selected();
-  if (!o) return;
-  o.fill = propFill.value;
-  render();
-});
+// propFill.addEventListener("input", () => {
+//   const o = selected();
+//   if (!o) return;
+//   o.fill = propFill.value;
+//   render();
+// });
 
-propStroke.addEventListener("input", () => {
-  const o = selected();
-  if (!o) return;
-  o.stroke = propStroke.value;
-  render();
-});
+// propStroke.addEventListener("input", () => {
+//   const o = selected();
+//   if (!o) return;
+//   o.stroke = propStroke.value;
+//   render();
+// });
 
 rotateLeftBtn.onclick = () => rotateSelected(-90);
 rotateRightBtn.onclick = () => rotateSelected(90);
@@ -3139,7 +3174,7 @@ newBtn.onclick = () => {
 saveBtn.onclick = saveFile;
 loadBtn.onclick = () => fileInput.click();
 fileInput.onchange = loadFile;
-exportSvgBtn.onclick = exportSVG;
+// exportSvgBtn.onclick = exportSVG;
 exportPngBtn.onclick = exportPNG;
 
 const DEFAULT_PLAN = "./floorplan.json";

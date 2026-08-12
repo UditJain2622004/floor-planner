@@ -1,224 +1,301 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FloorPlan Canvas</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark">FP</div>
-        <div>
-          <div class="brand-title">FloorPlan Canvas</div>
-          <div class="brand-sub">Simple 2D floor-plan editor</div>
-        </div>
-      </div>
-
-      <div class="toolbar">
-        <button id="newBtn" class="tool-btn">New</button>
-        <button id="undoBtn" class="tool-btn" disabled>↶ Undo</button>
-        <button id="redoBtn" class="tool-btn" disabled>↷ Redo</button>
-        <button id="saveBtn" class="tool-btn">Save design</button>
-        <button id="loadBtn" class="tool-btn">Import design</button>
-        <button id="exportSvgBtn" class="tool-btn">Export SVG</button>
-        <button id="exportPngBtn" class="tool-btn">Export PNG</button>
-      </div>
-
-      <div class="toolbar-right">
-        <label class="switch-label">
-          <input type="checkbox" id="gridToggle" checked />
-          <span>Grid</span>
-        </label>
-        <label class="switch-label">
-          <input type="checkbox" id="measureToggle" checked />
-          <span>Measurements</span>
-        </label>
-        <button id="zoomOutBtn" class="icon-btn">−</button>
-        <span id="zoomText" class="zoom-text">100%</span>
-        <button id="zoomInBtn" class="icon-btn">+</button>
-        <button id="fitBtn" class="tool-btn">Fit</button>
-      </div>
-    </header>
-
-    <main class="workspace">
-      <aside class="sidebar left">
-        <div class="sidebar-title">Assets</div>
-        <div class="asset-measurement">
-          <button class="wide-btn" id="measureToolBtn">↔ Draw measurement line</button>
-          <div class="row compact-row">
-            <label>Wall thickness</label>
-            <select id="wallThicknessSelect">
-              <option value="0.25">3"</option>
-              <option value="0.3333333333" selected>4"</option>
-              <option value="0.5">6"</option>
-              <option value="0.75">9"</option>
-            </select>
-          </div>
-        </div>
-        <div class="help-text">Drag an item onto the plan, or click to add it.</div>
-        <div id="assetPalette" class="asset-grid"></div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-title">Quick tools</div>
-          <button class="wide-btn" id="deleteBtn">Delete selected</button>
-          <button class="wide-btn" id="duplicateBtn">Duplicate selected</button>
-          <button class="wide-btn" id="frontBtn">Bring to front</button>
-          <button class="wide-btn" id="backBtn">Send to back</button>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-title">Canvas</div>
-          <div class="row">
-            <label>Dimension ref.</label>
-            <select id="dimensionRefSelect">
-              <option value="inner" selected>Inner / clear</option>
-              <option value="outer">Outer / overall</option>
-              <option value="center">Centerline</option>
-            </select>
-          </div>
-          <div class="row">
-            <label><input id="smartAlignToggle" type="checkbox" checked /> Smart align</label>
-          </div>
-          <div class="measurement-note">
-            <b>Inner</b> = clear space between wall faces.<br>
-            <b>Outer</b> = outside-to-outside overall size.<br>
-            <b>Centerline</b> = wall center to wall center.
-          </div>
-          <div class="row">
-            <label>Background</label>
-            <input id="bgColor" type="color" value="#ffffff" />
-          </div>
-        </div>
-      </aside>
-
-      <section class="canvas-wrap">
-        <div class="canvas-header">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FloorPlan Canvas</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">FP</div>
           <div>
-            <strong id="statusText">Ready</strong>
-            <span class="muted" id="selectionText">Nothing selected</span>
+            <div class="brand-title">FloorPlan Canvas</div>
+            <div class="brand-sub">Simple 2D floor-plan editor</div>
           </div>
-          <div class="muted">Tip: hold Shift while dragging to move without snapping.</div>
         </div>
-        <div id="svgViewport" class="svg-viewport">
-          <svg id="planSvg" xmlns="http://www.w3.org/2000/svg" tabindex="0">
-            <defs>
-              <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" class="grid-line"></path>
-              </pattern>
-              <pattern id="gridMajorPattern" width="100" height="100" patternUnits="userSpaceOnUse">
-                <rect width="100" height="100" fill="url(#gridPattern)"></rect>
-                <path d="M 100 0 L 0 0 0 100" class="grid-major"></path>
-              </pattern>
-              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.15"/>
-              </filter>
-            </defs>
-            <rect id="canvasBg" x="-1000000" y="-1000000" width="2000000" height="2000000" fill="#fff"></rect>
-            <g id="overlayGrid"></g>
-            <g id="objectsLayer"></g>
-            <g id="overlayLayer"></g>
-          </svg>
-        </div>
-      </section>
 
-      <aside class="sidebar right">
-        <div class="sidebar-title">Properties</div>
-        <div id="emptyProps" class="empty-props">
-          Select an object to edit its size, position, rotation and label.
+        <div class="toolbar">
+          <button id="newBtn" class="tool-btn">New</button>
+          <button id="undoBtn" class="tool-btn" disabled>↶ Undo</button>
+          <button id="redoBtn" class="tool-btn" disabled>↷ Redo</button>
+          <button id="saveBtn" class="tool-btn">Save design</button>
+          <button id="loadBtn" class="tool-btn">Import design</button>
+          <!-- <button id="exportSvgBtn" class="tool-btn">Export SVG</button> -->
+          <button id="exportPngBtn" class="tool-btn">Export Image</button>
         </div>
-        <div id="propsPanel" class="props-panel hidden">
-          <div class="prop-heading">
-            <span id="propType">Object</span>
-            <span id="propId" class="muted"></span>
+
+        <div class="toolbar-right">
+          <label class="switch-label">
+            <input type="checkbox" id="gridToggle" checked />
+            <span>Grid</span>
+          </label>
+          <label class="switch-label">
+            <input type="checkbox" id="measureToggle" checked />
+            <span>Measurements</span>
+          </label>
+          <button id="zoomOutBtn" class="icon-btn">−</button>
+          <span id="zoomText" class="zoom-text">100%</span>
+          <button id="zoomInBtn" class="icon-btn">+</button>
+          <button id="fitBtn" class="tool-btn">Fit</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar left">
+          <div class="sidebar-title">Assets</div>
+          <div class="asset-measurement">
+            <button class="wide-btn" id="measureToolBtn">
+              ↔ Draw measurement line
+            </button>
+            <!-- <div class="row compact-row">
+              <label>Wall thickness</label>
+              <select id="wallThicknessSelect">
+                <option value="0.25">3"</option>
+                <option value="0.3333333333" selected>4"</option>
+                <option value="0.5">6"</option>
+                <option value="0.75">9"</option>
+              </select>
+            </div> -->
+          </div>
+          <div class="help-text">
+            Drag an item onto the plan, or click to add it.
+          </div>
+          <div id="assetPalette" class="asset-grid"></div>
+
+          <div class="sidebar-section" hidden>
+            <div class="sidebar-title">Quick tools</div>
+            <button class="wide-btn" id="deleteBtn">Delete selected</button>
+            <button class="wide-btn" id="duplicateBtn">
+              Duplicate selected
+            </button>
+            <button class="wide-btn" id="frontBtn">Bring to front</button>
+            <button class="wide-btn" id="backBtn">Send to back</button>
           </div>
 
-          <div class="prop-section">
-            <div class="section-label">Position</div>
-            <div class="two-col">
-              <label>X <input id="propX" /></label>
-              <label>Y <input id="propY" /></label>
-            </div>
-          </div>
-
-          <div id="doorPlacementHint" class="measurement-note hidden">Door symbol includes its opening and swing. Place it over the wall opening; rotate 90° to change orientation.</div>
-
-          <div id="roomDimensionInputNote" class="measurement-note hidden">Room dimensions shown/entered here are <b>INNER / CLEAR</b> dimensions.</div>
-
-          <div id="wallDimensionNote" class="measurement-note hidden">
-          Walls use <b>Length</b> and <b>Thickness</b>. Rooms/bedrooms use the same Inner / Outer / Centerline convention.
-        </div>
-
-          <div class="prop-section">
-            <div class="section-label">Size</div>
-            <div class="two-col">
-              <label><span id="widthLabel">Width</span> <input id="propW" /></label>
-              <label><span id="heightLabel">Height</span> <input id="propH" /></label>
+          <div class="sidebar-section" hidden>
+            <div class="sidebar-title">Canvas</div>
+            <div class="row">
+              <label>Dimension ref.</label>
+              <select id="dimensionRefSelect">
+                <option value="inner" selected>Inner / clear</option>
+                <option value="outer">Outer / overall</option>
+                <option value="center">Centerline</option>
+              </select>
             </div>
             <div class="row">
-              <label><input id="lockAspect" type="checkbox" /> Lock aspect</label>
-            </div>
-          </div>
-
-          <div id="roomWallsPanel" class="prop-section hidden">
-            <div class="section-label">Room walls</div>
-            <div class="room-wall-grid">
-              <label>Top <input id="roomTopWall" placeholder='e.g. 4"'></label>
-              <label>Right <input id="roomRightWall" placeholder='e.g. 4"'></label>
-              <label>Bottom <input id="roomBottomWall" placeholder='e.g. 4"'></label>
-              <label>Left <input id="roomLeftWall" placeholder='0" = shared wall'></label>
+              <label
+                ><input id="smartAlignToggle" type="checkbox" checked /> Smart
+                align</label
+              >
             </div>
             <div class="measurement-note">
-              Each side is independent. Set a side to <b>0"</b> when it is an existing/shared/main wall.
+              <b>Inner</b> = clear space between wall faces.<br />
+              <b>Outer</b> = outside-to-outside overall size.<br />
+              <b>Centerline</b> = wall center to wall center.
+            </div>
+            <div class="row">
+              <label>Background</label>
+              <input id="bgColor" type="color" value="#ffffff" />
+            </div>
+          </div>
+        </aside>
+
+        <section class="canvas-wrap">
+          <div class="canvas-header">
+            <div>
+              <strong id="statusText">Ready</strong>
+              <span class="muted" id="selectionText">Nothing selected</span>
+            </div>
+            <div class="muted">
+              Tip: hold Shift while dragging to move without snapping.
+            </div>
+          </div>
+          <div id="svgViewport" class="svg-viewport">
+            <svg id="planSvg" xmlns="http://www.w3.org/2000/svg" tabindex="0">
+              <defs>
+                <pattern
+                  id="gridPattern"
+                  width="20"
+                  height="20"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <path d="M 20 0 L 0 0 0 20" class="grid-line"></path>
+                </pattern>
+                <pattern
+                  id="gridMajorPattern"
+                  width="100"
+                  height="100"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <rect
+                    width="100"
+                    height="100"
+                    fill="url(#gridPattern)"
+                  ></rect>
+                  <path d="M 100 0 L 0 0 0 100" class="grid-major"></path>
+                </pattern>
+                <filter
+                  id="shadow"
+                  x="-20%"
+                  y="-20%"
+                  width="140%"
+                  height="140%"
+                >
+                  <feDropShadow
+                    dx="0"
+                    dy="2"
+                    stdDeviation="2"
+                    flood-opacity="0.15"
+                  />
+                </filter>
+              </defs>
+              <rect
+                id="canvasBg"
+                x="-1000000"
+                y="-1000000"
+                width="2000000"
+                height="2000000"
+                fill="#fff"
+              ></rect>
+              <g id="overlayGrid"></g>
+              <g id="objectsLayer"></g>
+              <g id="overlayLayer"></g>
+            </svg>
+          </div>
+        </section>
+
+        <aside class="sidebar right">
+          <div class="sidebar-title">Properties</div>
+          <div id="emptyProps" class="empty-props">
+            Select an object to edit its size, position, rotation and label.
+          </div>
+          <div id="propsPanel" class="props-panel hidden">
+            <div class="prop-heading">
+              <span id="propType">Object</span>
+              <span id="propId" class="muted"></span>
+            </div>
+
+            <div class="prop-section">
+              <div class="section-label">Name</div>
+              <input id="propLabel" class="full" placeholder="Optional label" />
+            </div>
+
+            <div id="roomDimensionInputNote" class="measurement-note hidden">
+              Room dimensions shown/entered here are
+              <b>INNER / CLEAR</b> dimensions.
+            </div>
+
+            <div id="wallDimensionNote" class="measurement-note hidden" hidden>
+              Walls use <b>Length</b> and <b>Thickness</b>. Rooms/bedrooms use
+              the same Inner / Outer / Centerline convention.
+            </div>
+
+            <div class="prop-section">
+              <div class="section-label">Size</div>
+              <div class="two-col">
+                <label
+                  ><span id="widthLabel">Width</span> <input id="propW"
+                /></label>
+                <label
+                  ><span id="heightLabel">Height</span> <input id="propH"
+                /></label>
+              </div>
+              <div class="row">
+                <label
+                  ><input id="lockAspect" type="checkbox" /> Lock aspect</label
+                >
+              </div>
+            </div>
+
+            <div id="roomWallsPanel" class="prop-section hidden">
+              <div class="section-label">Room walls width</div>
+              <div class="room-wall-grid">
+                <label
+                  >Top <input id="roomTopWall" placeholder='e.g. 3"'
+                /></label>
+                <label
+                  >Right <input id="roomRightWall" placeholder='e.g. 3"'
+                /></label>
+                <label
+                  >Bottom <input id="roomBottomWall" placeholder='e.g. 3"'
+                /></label>
+                <label
+                  >Left <input id="roomLeftWall" placeholder='0" = shared wall'
+                /></label>
+              </div>
+              <div class="measurement-note">
+                Each side is independent. Set a side to <b>0"</b> when it is an
+                existing/shared/main wall.
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="section-label">Rotate</div>
+              <div class="rotation-row">
+                <button
+                  class="small-btn"
+                  id="rotateLeftBtn"
+                  title="Rotate 90° counter-clockwise"
+                >
+                  ↺ 90°
+                </button>
+                <button
+                  class="small-btn"
+                  id="rotateRightBtn"
+                  title="Rotate 90° clockwise"
+                >
+                  ↻ 90°
+                </button>
+                <label>Angle <input id="propRotation" /></label>
+              </div>
+            </div>
+
+            <div class="prop-section" hidden>
+              <div class="section-label">Style</div>
+              <div class="two-col">
+                <label>Fill <input id="propFill" type="color" /></label>
+                <label>Stroke <input id="propStroke" type="color" /></label>
+              </div>
+            </div>
+
+            <div class="prop-section">
+              <div class="section-label">Object controls</div>
+              <button class="wide-btn" id="measureBetweenBtn">
+                ↔ Measure distance to another object
+              </button>
+              <button class="wide-btn" id="lockToggleBtn">Lock selected</button>
+              <div id="measureSecondHint" class="measurement-note hidden">
+                Click the second object.
+              </div>
+              <!-- Delete via the Delete/Backspace key or Quick tools. -->
+            </div>
+
+            <div class="prop-section">
+              <div class="section-label">Position</div>
+              <div class="two-col">
+                <label>X <input id="propX" /></label>
+                <label>Y <input id="propY" /></label>
+              </div>
             </div>
           </div>
 
-          <div class="prop-section">
-            <div class="section-label">Rotation</div>
-            <div class="rotation-row">
-              <button class="small-btn" id="rotateLeftBtn" title="Rotate 90° counter-clockwise">↺ 90°</button>
-              <button class="small-btn" id="rotateRightBtn" title="Rotate 90° clockwise">↻ 90°</button>
-              <label>Angle <input id="propRotation" /></label>
+          <div class="sidebar-section">
+            <div class="sidebar-title">Measurements</div>
+            <div class="measurement-note">
+              All measurements use feet + inches. Examples: <b>12'-6"</b>,
+              <b>8'-0"</b>, <b>4'-6"</b>. Dimensions update automatically while
+              you drag or resize.
             </div>
           </div>
+        </aside>
+      </main>
+    </div>
 
-          <div class="prop-section">
-            <div class="section-label">Label</div>
-            <input id="propLabel" class="full" placeholder="Optional label" />
-          </div>
-
-          <div class="prop-section">
-            <div class="section-label">Style</div>
-            <div class="two-col">
-              <label>Fill <input id="propFill" type="color" /></label>
-              <label>Stroke <input id="propStroke" type="color" /></label>
-            </div>
-          </div>
-
-          <div class="prop-section">
-            <div class="section-label">Object controls</div>
-            <button class="wide-btn" id="measureBetweenBtn">↔ Measure to another object</button>
-            <button class="wide-btn" id="lockToggleBtn">Lock selected</button>
-          <div id="measureSecondHint" class="measurement-note hidden">Click the second object.</div>
-          <!-- Delete via the Delete/Backspace key or Quick tools. -->
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-title">Measurements</div>
-          <div class="measurement-note">
-            All measurements use feet + inches. Examples: <b>12'-6"</b>, <b>8'-0"</b>, <b>4'-6"</b>.
-            Dimensions update automatically while you drag or resize.
-          </div>
-        </div>
-      </aside>
-    </main>
-  </div>
-
-  <input id="fileInput" type="file" accept=".json,application/json" hidden />
-  <div id="toast" class="toast"></div>
-  <script src="app.js"></script>
-</body>
+    <input id="fileInput" type="file" accept=".json,application/json" hidden />
+    <div id="toast" class="toast"></div>
+    <script src="app.js"></script>
+  </body>
 </html>
