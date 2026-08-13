@@ -33,7 +33,9 @@ let measureMode = false;
 let measureDraft = null;
 let clipboardObject = null;
 let distancePickMode = false;
+let autosaveTimer = null;
 const cameraBaseWidth = 40;
+const AUTOSAVE_KEY = "floorplan-canvas-autosave-v1";
 
 const ASSETS = [
   ["door", "Gate / Door"],
@@ -853,6 +855,7 @@ function render() {
   updateStatus();
   updateUndoRedo();
   updateCamera();
+  scheduleAutosave();
 }
 
 function niceGridStep(zoom) {
@@ -2444,13 +2447,17 @@ function setPropNum(id, key) {
   render();
 }
 
-function saveFile() {
-  const payload = {
+function buildPlanPayload() {
+  return {
     version: 4,
     canvas: { units: "feet", infinite: true, scale: canvas.scale },
     state: JSON.parse(JSON.stringify(state)),
     camera: { ...camera },
   };
+}
+
+function saveFile() {
+  const payload = buildPlanPayload();
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json",
@@ -2461,6 +2468,70 @@ function saveFile() {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 500);
   flash("Floor plan saved");
+}
+
+function saveAutoState() {
+  try {
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(buildPlanPayload()));
+  } catch (err) {
+    console.warn("Unable to save autosave state:", err);
+  }
+}
+
+function scheduleAutosave() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => {
+    saveAutoState();
+  }, 300);
+}
+
+function restoreAutoState() {
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if (!raw) return false;
+
+    const payload = JSON.parse(raw);
+    if (!payload || !payload.state || !Array.isArray(payload.state.objects)) {
+      return false;
+    }
+
+    const incomingState = payload.state;
+    state = {
+      ...state,
+      ...incomingState,
+      selectedId: null,
+      snap: 0,
+    };
+
+    state.objects = (state.objects || []).map((o) => {
+      const base = defaults[o.type] || defaults.rect;
+      const obj = { ...base, ...o };
+      if (obj.type === "room") ensureRoomWalls(obj);
+      normalizeObject(obj);
+      return obj;
+    });
+
+    if (payload.camera) {
+      camera = {
+        x: Number(payload.camera.x),
+        y: Number(payload.camera.y),
+        w: Number(payload.camera.w),
+        h: Number(payload.camera.h),
+      };
+    }
+
+    undoStack = [];
+    redoStack = [];
+    clipboardObject = null;
+    distancePickMode = false;
+    state.distancePair = null;
+    syncControls();
+    render();
+    return true;
+  } catch (err) {
+    console.warn("Unable to restore autosave state:", err);
+    return false;
+  }
 }
 
 function migrateImportedState(raw) {
@@ -3175,8 +3246,27 @@ newBtn.onclick = () => {
   render();
 };
 
-saveBtn.onclick = saveFile;
+saveBtn.onclick = () => {
+  saveFile();
+  saveAutoState();
+};
 loadBtn.onclick = () => fileInput.click();
+templateBtn.onclick = async () => {
+  if (
+    state.objects.length &&
+    !confirm("Load the built-in template? Your current plan will be replaced.")
+  ) {
+    return;
+  }
+
+  try {
+    await loadDefaultPlan();
+    flash("Template loaded");
+  } catch (error) {
+    console.error("Template load failed:", error);
+    flash("Template unavailable");
+  }
+};
 fileInput.onchange = loadFile;
 // exportSvgBtn.onclick = exportSVG;
 exportPngBtn.onclick = exportPNG;
@@ -3204,6 +3294,7 @@ async function loadDefaultPlan() {
     state.objects = (state.objects || []).map((o) => {
       const base = defaults[o.type] || defaults.rect;
       const obj = { ...base, ...o };
+      if (obj.type === "room") ensureRoomWalls(obj);
       normalizeObject(obj);
       return obj;
     });
@@ -3214,14 +3305,17 @@ async function loadDefaultPlan() {
 
     syncControls();
     render();
+    return true;
   } catch (error) {
     console.error("Failed to load default floor plan:", error);
 
-    // Fallback
     addStarter();
     render();
+    return false;
   }
 }
 
 buildPalette();
-loadDefaultPlan();
+if (!restoreAutoState()) {
+  loadDefaultPlan();
+}
