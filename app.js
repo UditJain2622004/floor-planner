@@ -2961,6 +2961,10 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
   }
 
+  if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+    return;
+  }
+
   const o = selected();
   if (!o) return;
 

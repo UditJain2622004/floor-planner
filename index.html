@@ -213,18 +213,21 @@
             <div id="roomWallsPanel" class="prop-section hidden">
               <div class="section-label">Room walls width</div>
               <div class="room-wall-grid">
-                <label
-                  >Top <input id="roomTopWall" placeholder='e.g. 3"'
+                <label class="wall-field wall-top"
+                  >Top Wall Width <input id="roomTopWall" placeholder='e.g. 3"'
                 /></label>
-                <label
-                  >Right <input id="roomRightWall" placeholder='e.g. 3"'
+                <label class="wall-field wall-left"
+                  >Left Wall Width
+                  <input id="roomLeftWall" placeholder='0" = shared wall'
                 /></label>
-                <label
-                  >Bottom <input id="roomBottomWall" placeholder='e.g. 3"'
+                <label class="wall-field wall-right"
+                  >Right Wall Width
+                  <input id="roomRightWall" placeholder='e.g. 3"'
                 /></label>
-                <label
-                  >Left <input id="roomLeftWall" placeholder='0" = shared wall'
-                /></label>
+                <label class="wall-field wall-bottom"
+                  ><input id="roomBottomWall" placeholder='e.g. 3"' /> Bottom
+                  Wall Width</label
+                >
               </div>
               <div class="measurement-note">
                 Each side is independent. Set a side to <b>0"</b> when it is an
